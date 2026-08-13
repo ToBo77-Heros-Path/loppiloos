@@ -65,44 +65,28 @@ export default function KitchenPage() {
     }
   };
 
-  // 1. Fetch existing orders & menu items upon mounting
+  // 1. Fetch existing orders & menu items upon mounting + setup Realtime subskription
   useEffect(() => {
     fetchOrders();
     fetchMenuItems();
 
-    // 2. Realtime listener on 'custom-filter-channel' for INSERT and UPDATE (and DELETE)
+    // Realtime subscription on 'schema-db-changes' channel
     const channel = supabase
-      .channel('custom-filter-channel')
+      .channel('schema-db-changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
-          console.log('Realtime postgres_change event on orders table:', payload);
-
-          if (payload.eventType === 'INSERT') {
-            const newOrder = payload.new as Order;
-            setOrders((prev) => [
-              newOrder,
-              ...prev.filter((o) => o.id !== newOrder.id),
-            ]);
-
-            if (soundEnabled) {
-              playPlingSound();
-            }
+          console.log('Realtime change:', payload);
+          if (payload.eventType === 'INSERT' && soundEnabled) {
+            playPlingSound();
             setLastNotificationTime(new Date().toLocaleTimeString('sv-SE'));
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedOrder = payload.new as Order;
-            setOrders((prev) =>
-              prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
-            );
-          } else if (payload.eventType === 'DELETE') {
-            const deletedId = payload.old.id;
-            setOrders((prev) => prev.filter((o) => o.id !== deletedId));
           }
+          fetchOrders();
         }
       )
       .subscribe((status) => {
-        console.log('Supabase Realtime channel status:', status);
+        console.log('Realtime status:', status);
       });
 
     return () => {
@@ -110,7 +94,7 @@ export default function KitchenPage() {
     };
   }, [soundEnabled]);
 
-  // Fetch orders from Supabase (order by created_at descending)
+  // Förenklad Supabase-fråga: Hämtar ALLA rader oavsett status och loggar till konsolen
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
@@ -119,12 +103,14 @@ export default function KitchenPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('Hämtade orders:', data);
+
       if (error) {
         console.error('Error fetching orders from Supabase:', error);
       } else if (data && data.length > 0) {
         setOrders(data as Order[]);
       } else if (!data || data.length === 0) {
-        // Fallback demo orders if database table is empty or uninitialized
+        // Fallback demo orders om tabellen är tom eller inte initierad ännu
         setOrders((prev) => (prev.length > 0 ? prev : [
           {
             id: 'demo-1',
@@ -177,9 +163,9 @@ export default function KitchenPage() {
     }
   };
 
-  // 3. Update status: Mark as done optimistic local update + Supabase update
+  // Status-uppdatering: Omedelbar lokal uppdatering + Supabase update
   const handleMarkAsDone = async (orderId: string) => {
-    // Immediate local state update without reflash
+    // Omedelbart lokalt state utan reflash
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: 'Klar' as const } : o))
     );
@@ -193,7 +179,7 @@ export default function KitchenPage() {
       if (error) {
         console.error('Failed updating order status in Supabase:', error);
       } else {
-        console.log(`Order ${orderId} successfully marked as Klar in Supabase.`);
+        console.log(`Order ${orderId} markerad som Klar i Supabase.`);
       }
     } catch (err) {
       console.error('Failed updating order status in Supabase:', err);
@@ -218,7 +204,6 @@ export default function KitchenPage() {
       const { data, error } = await supabase.from('menu_items').insert([itemData]).select();
       if (error) {
         console.error('Error adding dish to Supabase:', error);
-        // Fallback local update
         const created: MenuItem = {
           id: `kitchen-dish-${Date.now()}`,
           title: itemData.title!,
@@ -269,8 +254,22 @@ export default function KitchenPage() {
     }
   };
 
-  const filteredOrders = orders.filter((o) => o.status === activeTab);
-  const activeCount = orders.filter((o) => o.status === 'Inkommen').length;
+  // Case-insensitive status matching function ('Inkommen' vs 'inkommen', 'Klar' vs 'klar')
+  const isStatusMatch = (orderStatus?: string, targetTab?: 'Inkommen' | 'Klar') => {
+    if (!targetTab) return true;
+    const s = (orderStatus || '').trim().toLowerCase();
+    const t = targetTab.trim().toLowerCase();
+    if (t === 'inkommen') {
+      return s === 'inkommen' || s === 'new' || s === 'pending' || s === '';
+    }
+    if (t === 'klar') {
+      return s === 'klar' || s === 'completed' || s === 'done';
+    }
+    return s === t;
+  };
+
+  const filteredOrders = orders.filter((o) => isStatusMatch(o.status, activeTab as 'Inkommen' | 'Klar'));
+  const activeCount = orders.filter((o) => isStatusMatch(o.status, 'Inkommen')).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFD3DD] via-[#F0F9F8] to-[#C6E6E3] text-[#2D3748] flex flex-col">
@@ -308,15 +307,17 @@ export default function KitchenPage() {
             <span>{soundEnabled ? 'Ljud På' : 'Ljud Av'}</span>
           </button>
 
+          {/* Manuell 'Ladda om'-knapp */}
           <button
             onClick={() => {
               fetchOrders();
               fetchMenuItems();
             }}
-            className="p-2 bg-white hover:bg-[#F0F9F8] rounded-xl border-2 border-[#81BFB7] text-[#4F8881] transition-colors shadow-sm"
-            title="Uppdatera data"
+            className="px-4 py-2 bg-white hover:bg-[#F0F9F8] rounded-xl border-2 border-[#81BFB7] text-[#4F8881] font-extrabold text-xs flex items-center gap-2 transition-all shadow-sm active:scale-95"
+            title="Ladda om alla orders manuellt från Supabase"
           >
             <RefreshCw className="w-4 h-4" />
+            <span>Ladda om orders</span>
           </button>
 
           <Link
@@ -398,11 +399,13 @@ export default function KitchenPage() {
                     minute: '2-digit',
                   });
 
+                  const isDone = isStatusMatch(order.status, 'Klar');
+
                   return (
                     <div
                       key={order.id}
                       className={`rounded-3xl p-5 border-2 flex flex-col justify-between transition-all duration-300 shadow-diner-card ${
-                        order.status === 'Inkommen'
+                        !isDone
                           ? 'bg-white/95 border-[#F3A2BE] shadow-[0_0_15px_rgba(243,162,190,0.4)]'
                           : 'bg-[#F0F9F8]/70 border-[#81BFB7]/30 opacity-75'
                       }`}
@@ -448,7 +451,7 @@ export default function KitchenPage() {
 
                       {/* Actions */}
                       <div className="mt-6 pt-3 border-t border-[#81BFB7]/30">
-                        {order.status === 'Inkommen' ? (
+                        {!isDone ? (
                           <button
                             onClick={() => handleMarkAsDone(order.id)}
                             className="w-full bg-[#81BFB7] hover:bg-[#4F8881] text-white font-black py-3 rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wide"
