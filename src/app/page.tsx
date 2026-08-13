@@ -8,12 +8,12 @@ import { MenuItem, CategoryType } from '@/types/database';
 import confetti from 'canvas-confetti';
 import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine, IceCream, AlertCircle } from 'lucide-react';
 
-const PRESET_GUESTS = ['Felicia', 'Tommy', 'Linda', 'Sara', 'Marcus', 'Annan'];
+const PRESET_GUESTS = ['Tommy', 'Linda', 'Bella', 'Marley', 'Felicia', 'Kornelia', 'Annan'];
 
 export default function GuestPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedGuest, setSelectedGuest] = useState<string>('Felicia');
+  const [selectedGuest, setSelectedGuest] = useState<string>('Tommy');
   const [customGuest, setCustomGuest] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Smårätter');
   
@@ -133,7 +133,7 @@ export default function GuestPage() {
       particleCount: 120,
       spread: 80,
       origin: { y: 0.6 },
-      colors: ['#f59e0b', '#fbbf24', '#881337', '#e11d48', '#ffffff'],
+      colors: ['#F3A2BE', '#FFD3DD', '#81BFB7', '#C6E6E3', '#ffffff'],
     });
 
     setLastOrderDetails({
@@ -157,30 +157,37 @@ export default function GuestPage() {
   const filteredItems = menuItems.filter((i) => i.category === selectedCategory);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center">
-      {/* 🎪 Sleek Circus Header */}
-      <header className="w-full circus-stripe-bg border-b-4 border-amber-500 text-center py-6 px-4 shadow-red-glow relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-500/10 via-transparent to-black/40 pointer-events-none" />
+    <div className="min-h-screen bg-gradient-to-b from-[#FFD3DD] via-[#F0F9F8] to-[#C6E6E3] text-[#2D3748] flex flex-col items-center">
+      {/* 🍦 50s American Diner Neon Sign Header */}
+      <header className="w-full bg-gradient-to-r from-[#F3A2BE] via-[#FFD3DD] to-[#F3A2BE] border-b-4 border-[#81BFB7] text-center py-7 px-4 shadow-lg relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(255,255,255,0.4)_0%,_transparent_70%)] pointer-events-none" />
+        
+        {/* Retro Diner Chrome Border Banner */}
         <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-400/40 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-2 backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5" /> Welcome to Circus Loppiloo <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 bg-[#F0F9F8]/90 border border-[#81BFB7] text-[#4F8881] px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3 shadow-sm backdrop-blur-sm">
+            <Sparkles className="w-3.5 h-3.5 text-[#F3A2BE]" /> 50's American Diner <Sparkles className="w-3.5 h-3.5 text-[#F3A2BE]" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-amber-400 gold-text-glow font-serif">
-            Loppiloo's 🎪
-          </h1>
-          <p className="text-rose-200 text-sm mt-1 font-medium italic">
-            Små rätter, stora smaker & magiska drinkar!
+          
+          {/* Neon Sign for Loppiloo's */}
+          <div className="bg-[#1e293b]/90 px-8 py-3 rounded-2xl border-2 border-[#81BFB7] shadow-[0_0_20px_rgba(243,162,190,0.5)] my-1 animate-neon-flicker">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl diner-neon-text tracking-wider" style={{ textShadow: '0 0 10px #F3A2BE, 0 0 20px #F3A2BE, 0 0 30px #e11d48' }}>
+              Loppiloo's
+            </h1>
+          </div>
+
+          <p className="text-[#4F8881] text-xs sm:text-sm mt-2 font-bold tracking-wide bg-[#F0F9F8]/80 px-4 py-1 rounded-full border border-[#81BFB7]/40">
+            🍦 Små rätter, söta milkshake-drinkar & 50-tals lyx!
           </p>
         </div>
       </header>
 
       {/* Fallback Notice if Supabase env vars not set */}
       {usingFallback && (
-        <div className="w-full max-w-2xl px-4 mt-3">
-          <div className="bg-amber-950/60 border border-amber-500/30 rounded-xl p-3 text-xs text-amber-200 flex items-center gap-2.5">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+        <div className="w-full max-w-2xl px-4 mt-4">
+          <div className="bg-[#F0F9F8] border border-[#81BFB7] rounded-2xl p-3 text-xs text-[#4F8881] flex items-center gap-2.5 shadow-sm">
+            <AlertCircle className="w-5 h-5 text-[#F3A2BE] shrink-0" />
             <div>
-              <span className="font-bold">Demoläge aktivt:</span> Supabase-miljövariabler saknas eller databasen har inte initierats. Kör <code className="bg-slate-900 px-1 py-0.5 rounded text-amber-300">supabase-schema.sql</code> i Supabase SQL Editor för fullständig persistering!
+              <span className="font-bold">Demoläge aktivt:</span> Supabase-miljövariabler saknas eller databasen har inte initierats. Kör <code className="bg-[#FFD3DD] px-1.5 py-0.5 rounded text-[#2D3748] font-mono">supabase-schema.sql</code> i Supabase SQL Editor för fullständig persistering!
             </div>
           </div>
         </div>
@@ -189,26 +196,26 @@ export default function GuestPage() {
       {/* Main Container */}
       <div className="w-full max-w-2xl px-4 py-6 flex flex-col gap-6">
         {/* 👤 Gästval (Guest Selector) */}
-        <section className="pinchos-glass-card rounded-2xl p-4 flex flex-col gap-3 border border-amber-500/30 shadow-lg">
-          <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
-            <User className="w-4 h-4" />
-            <span>Vem är det som beställer?</span>
+        <section className="diner-glass-card rounded-3xl p-5 flex flex-col gap-3.5 border-2 border-[#81BFB7]/40 shadow-diner-card">
+          <div className="flex items-center gap-2 text-[#4F8881] font-bold text-sm">
+            <User className="w-4.5 h-4.5 text-[#F3A2BE]" />
+            <span>Vem är det som beställer? (Välj ditt namn)</span>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {PRESET_GUESTS.map((name) => {
               const isSelected = selectedGuest === name;
               return (
                 <button
                   key={name}
                   onClick={() => setSelectedGuest(name)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 border ${
+                  className={`px-4 py-2.5 rounded-2xl text-sm font-extrabold transition-all duration-200 flex items-center gap-1.5 border-2 ${
                     isSelected
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold shadow-gold-glow scale-105'
-                      : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-amber-500/50 hover:bg-slate-800'
+                      ? 'bg-[#F3A2BE] text-white border-[#e11d48] shadow-[0_0_12px_rgba(243,162,190,0.6)] scale-105'
+                      : 'bg-white/90 text-[#4F8881] border-[#C6E6E3] hover:border-[#81BFB7] hover:bg-[#F0F9F8]'
                   }`}
                 >
-                  {isSelected && <Check className="w-3.5 h-3.5" />}
+                  {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
                   {name}
                 </button>
               );
@@ -218,26 +225,26 @@ export default function GuestPage() {
           {selectedGuest === 'Annan' && (
             <input
               type="text"
-              placeholder="Skriv in ditt namn..."
+              placeholder="Skriv in ditt namn här..."
               value={customGuest}
               onChange={(e) => setCustomGuest(e.target.value)}
-              className="mt-1 w-full bg-slate-900 border border-amber-500/40 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              className="mt-1 w-full bg-white border-2 border-[#F3A2BE] rounded-2xl px-4 py-3 text-sm text-[#2D3748] placeholder-[#81BFB7] focus:outline-none focus:ring-2 focus:ring-[#81BFB7]"
             />
           )}
         </section>
 
         {/* 🍽️ Kategori-flikar */}
-        <section className="flex bg-slate-900/90 p-1.5 rounded-2xl border border-amber-500/30 gap-1.5 shadow-md">
+        <section className="flex bg-[#F0F9F8] p-1.5 rounded-2xl border-2 border-[#81BFB7]/50 gap-1.5 shadow-md">
           {categories.map((cat) => {
             const isActive = selectedCategory === cat.key;
             return (
               <button
                 key={cat.key}
                 onClick={() => setSelectedCategory(cat.key)}
-                className={`flex-1 py-3 px-2 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`flex-1 py-3 px-2 rounded-xl font-black text-xs sm:text-sm transition-all duration-200 flex items-center justify-center gap-2 border ${
                   isActive
-                    ? 'bg-gradient-to-r from-rose-900 to-rose-950 text-amber-300 border border-amber-400/50 shadow-gold-glow'
-                    : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60'
+                    ? 'bg-[#81BFB7] text-white border-[#4F8881] shadow-md scale-[1.02]'
+                    : 'text-[#4F8881] border-transparent hover:bg-[#C6E6E3]/50'
                 }`}
               >
                 {cat.icon}
@@ -250,12 +257,12 @@ export default function GuestPage() {
         {/* 📜 Menylista (Menu List) */}
         <section className="flex flex-col gap-4">
           {loading ? (
-            <div className="text-center py-12 text-slate-400 flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-sm font-medium">Laddar cirkusmenyn...</p>
+            <div className="text-center py-12 text-[#4F8881] flex flex-col items-center gap-2">
+              <div className="w-8 h-8 border-4 border-[#F3A2BE] border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm font-bold">Laddar diner-menyn...</p>
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="text-center py-12 pinchos-glass-card rounded-2xl text-slate-400">
+            <div className="text-center py-12 diner-glass-card rounded-2xl text-[#4F8881] font-medium">
               Inga rätter tillgängliga i denna kategori för tillfället.
             </div>
           ) : (
@@ -264,43 +271,43 @@ export default function GuestPage() {
               return (
                 <div
                   key={item.id}
-                  className={`pinchos-glass-card rounded-2xl p-4 flex justify-between items-center transition-all duration-200 border ${
-                    qty > 0 ? 'border-amber-400 bg-slate-900/90 shadow-gold-glow' : 'border-amber-500/20'
+                  className={`diner-glass-card rounded-3xl p-4.5 flex justify-between items-center transition-all duration-200 border-2 ${
+                    qty > 0 ? 'border-[#F3A2BE] bg-[#FFD3DD]/30 shadow-[0_0_15px_rgba(243,162,190,0.3)]' : 'border-[#81BFB7]/30'
                   }`}
                 >
                   <div className="flex-1 pr-4">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-lg text-slate-100 group-hover:text-amber-300">
+                      <h3 className="font-extrabold text-base sm:text-lg text-[#2D3748]">
                         {item.title}
                       </h3>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-[#4A5568] mt-1 leading-relaxed line-clamp-2">
                       {item.description}
                     </p>
-                    <div className="mt-2 text-amber-400 font-extrabold text-sm flex items-center gap-1">
-                      <span>{item.price} SEK</span>
+                    <div className="mt-2 text-[#e11d48] font-black text-sm flex items-center gap-1">
+                      <span className="bg-[#FFD3DD] px-2.5 py-0.5 rounded-full border border-[#F3A2BE]">{item.price} SEK</span>
                     </div>
                   </div>
 
                   {/* Quantity controls */}
-                  <div className="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-xl border border-amber-500/30">
+                  <div className="flex items-center gap-2 bg-white/90 p-1.5 rounded-2xl border-2 border-[#81BFB7]/40 shadow-sm">
                     {qty > 0 && (
                       <>
                         <button
                           onClick={() => handleQuantityChange(item.id, -1)}
-                          className="w-8 h-8 rounded-lg bg-rose-900/80 text-amber-300 hover:bg-rose-800 flex items-center justify-center transition-colors active:scale-95"
+                          className="w-8 h-8 rounded-xl bg-[#FFD3DD] text-[#e11d48] font-bold hover:bg-[#F3A2BE] hover:text-white flex items-center justify-center transition-colors active:scale-95"
                           aria-label="Minska"
                         >
-                          <Minus className="w-4 h-4" />
+                          <Minus className="w-4 h-4 stroke-[3]" />
                         </button>
-                        <span className="w-6 text-center font-extrabold text-amber-400 text-sm">
+                        <span className="w-6 text-center font-black text-[#2D3748] text-sm">
                           {qty}
                         </span>
                       </>
                     )}
                     <button
                       onClick={() => handleQuantityChange(item.id, 1)}
-                      className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 flex items-center justify-center transition-all active:scale-95 shadow-md"
+                      className="w-8 h-8 rounded-xl bg-[#F3A2BE] text-white font-bold hover:bg-[#e11d48] flex items-center justify-center transition-all active:scale-95 shadow-md"
                       aria-label="Öka"
                     >
                       <Plus className="w-4 h-4 stroke-[3]" />
@@ -319,19 +326,19 @@ export default function GuestPage() {
           <button
             onClick={handleSendOrder}
             disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-rose-900 via-rose-800 to-rose-900 border-2 border-amber-400 text-amber-300 font-extrabold py-4 px-6 rounded-2xl shadow-gold-glow hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-between text-base"
+            className="w-full bg-gradient-to-r from-[#F3A2BE] via-[#e11d48] to-[#F3A2BE] border-2 border-white text-white font-black py-4 px-6 rounded-3xl shadow-[0_0_20px_rgba(243,162,190,0.7)] hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-between text-base"
           >
             <div className="flex items-center gap-3">
-              <div className="bg-amber-500 text-slate-950 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shadow-md">
+              <div className="bg-white text-[#e11d48] w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shadow-md">
                 {totalItemCount}
               </div>
-              <span className="gold-text-glow">Skicka beställning till köket</span>
+              <span className="tracking-wide">Skicka beställning till köket</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-black/40 px-2.5 py-1 rounded-lg border border-amber-500/40 text-amber-300">
+              <span className="text-xs bg-black/20 px-3 py-1 rounded-full border border-white/40 text-white font-bold">
                 Gäst: {activeGuestName}
               </span>
-              <ShoppingBag className="w-5 h-5 text-amber-400" />
+              <ShoppingBag className="w-5 h-5 text-white" />
             </div>
           </button>
         </div>
@@ -339,46 +346,46 @@ export default function GuestPage() {
 
       {/* 🥳 Festlig Bekräftelse Pop-Up Modal */}
       {showOrderModal && lastOrderDetails && (
-        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-curtain-reveal">
-          <div className="pinchos-glass-card border-2 border-amber-400 rounded-3xl p-6 max-w-md w-full text-center relative shadow-gold-glow flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500 to-rose-600 flex items-center justify-center shadow-lg border-2 border-amber-300 text-3xl">
-              🎪
+        <div className="fixed inset-0 bg-[#2D3748]/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-curtain-reveal">
+          <div className="diner-glass-card border-4 border-[#F3A2BE] rounded-3xl p-6 max-w-md w-full text-center relative shadow-[0_0_30px_rgba(243,162,190,0.5)] flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#F3A2BE] to-[#81BFB7] flex items-center justify-center shadow-lg border-2 border-white text-3xl">
+              🍦
             </div>
 
             <div className="space-y-1">
-              <span className="text-xs uppercase tracking-widest text-amber-400 font-bold">
+              <span className="text-xs uppercase tracking-widest text-[#4F8881] font-black">
                 Order Mottagen!
               </span>
-              <h2 className="text-2xl font-black text-slate-100">
+              <h2 className="text-2xl font-black text-[#2D3748]">
                 Tack {lastOrderDetails.guestName}!
               </h2>
-              <p className="text-xs text-rose-300">
+              <p className="text-xs text-[#4F8881] font-semibold">
                 Din beställning skickades direkt till köket på Loppiloo's.
               </p>
             </div>
 
             {/* Order Items List */}
-            <div className="w-full bg-slate-950/80 rounded-2xl p-4 border border-amber-500/20 max-h-48 overflow-y-auto text-left text-xs space-y-2">
-              <div className="flex justify-between font-bold text-amber-400 pb-1 border-b border-amber-500/20">
+            <div className="w-full bg-white/90 rounded-2xl p-4 border border-[#81BFB7]/40 max-h-48 overflow-y-auto text-left text-xs space-y-2">
+              <div className="flex justify-between font-bold text-[#4F8881] pb-1 border-b border-[#81BFB7]/30">
                 <span>Rätt</span>
                 <span>Antal</span>
               </div>
               {lastOrderDetails.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-slate-200">
+                <div key={idx} className="flex justify-between text-[#2D3748] font-medium">
                   <span className="truncate pr-2">{item.title}</span>
-                  <span className="font-bold text-amber-300">x{item.quantity}</span>
+                  <span className="font-bold text-[#e11d48]">x{item.quantity}</span>
                 </div>
               ))}
             </div>
 
-            <div className="w-full flex justify-between items-center bg-rose-950/50 border border-amber-500/30 rounded-xl px-4 py-2 text-xs">
-              <span className="text-slate-400">Ordernummer:</span>
-              <span className="font-mono font-bold text-amber-300">{lastOrderDetails.id}</span>
+            <div className="w-full flex justify-between items-center bg-[#FFD3DD]/60 border border-[#F3A2BE]/50 rounded-xl px-4 py-2 text-xs">
+              <span className="text-[#4F8881] font-bold">Ordernummer:</span>
+              <span className="font-mono font-black text-[#e11d48]">{lastOrderDetails.id}</span>
             </div>
 
             <button
               onClick={() => setShowOrderModal(false)}
-              className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl shadow-md transition-all active:scale-95 text-sm uppercase tracking-wide"
+              className="w-full bg-[#81BFB7] hover:bg-[#4F8881] text-white font-black py-3.5 rounded-2xl shadow-md transition-all active:scale-95 text-sm uppercase tracking-wide"
             >
               Fortsätt Beställa ✨
             </button>

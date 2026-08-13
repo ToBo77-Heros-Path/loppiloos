@@ -4,45 +4,62 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-slate-950;
+    background: linear-gradient(135deg, #FFD3DD 0%, #F0F9F8 50%, #C6E6E3 100%);
+    background-attachment: fixed;
+    color: #2D3748;
+    min-height: 100vh;
+    font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom Circus Stripe Headers & Accents */
-.circus-stripe-bg {
+/* 50s Diner Neon Sign Glow */
+.diner-neon-text {
+  font-family: var(--font-pacifico), 'Pacifico', 'Dancing Script', cursive, serif;
+  color: #ffffff;
+  text-shadow: 0 0 10px #F3A2BE, 0 0 20px #F3A2BE, 0 0 30px #e11d48;
+  letter-spacing: 0.05em;
+}
+
+.diner-neon-text-dark {
+  font-family: var(--font-pacifico), 'Pacifico', 'Dancing Script', cursive, serif;
+  color: #F3A2BE;
+  text-shadow: 0 0 8px rgba(243, 162, 190, 0.6), 0 0 15px rgba(225, 29, 72, 0.4);
+}
+
+/* 50s Diner Striped Header Accent */
+.diner-stripe-bg {
   background: repeating-linear-gradient(
-    45deg,
-    #881337,
-    #881337 25px,
-    #4c0519 25px,
-    #4c0519 50px
+    -45deg,
+    #F3A2BE,
+    #F3A2BE 25px,
+    #FFD3DD 25px,
+    #FFD3DD 50px
   );
 }
 
-.circus-border-gold {
-  border: 2px solid #f59e0b;
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.15);
+/* Diner Mint Accent Border */
+.diner-border-wintergreen {
+  border: 2px solid #81BFB7;
+  box-shadow: 0 0 15px rgba(129, 191, 183, 0.35), inset 0 0 8px rgba(198, 230, 227, 0.2);
 }
 
-.gold-text-glow {
-  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5), 0 0 20px rgba(251, 191, 36, 0.3);
+.diner-border-pink {
+  border: 2px solid #F3A2BE;
+  box-shadow: 0 0 15px rgba(243, 162, 190, 0.35);
 }
 
-.red-text-glow {
-  text-shadow: 0 0 12px rgba(225, 29, 72, 0.6);
-}
-
-/* Glassmorphism Card Style */
-.pinchos-glass-card {
-  background: rgba(30, 41, 59, 0.75);
+/* Pastel Glass Card Style */
+.diner-glass-card {
+  background: rgba(240, 249, 248, 0.88);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1.5px solid rgba(129, 191, 183, 0.4);
+  box-shadow: 0 10px 25px -5px rgba(129, 191, 183, 0.25), 0 8px 10px -6px rgba(243, 162, 190, 0.2);
 }
 
-.pinchos-glass-card:hover {
-  border-color: rgba(245, 158, 11, 0.5);
-  box-shadow: 0 8px 32px 0 rgba(245, 158, 11, 0.2);
+.diner-glass-card:hover {
+  border-color: #81BFB7;
+  box-shadow: 0 12px 28px -4px rgba(129, 191, 183, 0.35), 0 0 15px rgba(243, 162, 190, 0.25);
 }
 
 /* Custom Scrollbars */
@@ -52,15 +69,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #F0F9F8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #881337;
+  background: #81BFB7;
   border-radius: 4px;
-  border: 1px solid #f59e0b;
+  border: 1px solid #C6E6E3;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9f1239;
+  background: #F3A2BE;
 }

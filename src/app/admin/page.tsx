@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
 import { MenuItem, CategoryType } from '@/types/database';
 import { Plus, Trash2, Check, X, Settings, Utensils, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -101,7 +102,6 @@ export default function AdminPage() {
 
   const handleToggleAvailable = async (id: string, currentAvailable: boolean) => {
     const nextAvailable = !currentAvailable;
-    // Optimistic UI update
     setItems((prev) =>
       prev.map((i) => (i.id === id ? { ...i, available: nextAvailable } : i))
     );
@@ -119,7 +119,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm('Är du säker på att du vill ta bort denna rätt från cirkusmenyn?')) return;
+    if (!confirm('Är du säker på att du vill ta bort denna rätt permanent?')) return;
 
     setItems((prev) => prev.filter((i) => i.id !== id));
 
@@ -133,24 +133,23 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center py-6 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFD3DD] via-[#F0F9F8] to-[#C6E6E3] text-[#2D3748] flex flex-col items-center py-6 px-4">
       <div className="w-full max-w-4xl flex flex-col gap-6">
         {/* Header */}
-        <header className="circus-stripe-bg rounded-3xl p-6 border-2 border-amber-400 text-center shadow-gold-glow flex flex-col items-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-slate-950 border border-amber-400 flex items-center justify-center text-2xl">
-            ⚙️
+        <header className="bg-gradient-to-r from-[#F3A2BE] via-[#FFD3DD] to-[#F3A2BE] rounded-3xl p-6 border-4 border-[#81BFB7] text-center shadow-lg flex flex-col items-center gap-3">
+          <div className="bg-[#1e293b] px-6 py-2 rounded-2xl border-2 border-[#81BFB7] shadow-[0_0_15px_rgba(243,162,190,0.6)] animate-neon-flicker">
+            <h1 className="text-3xl sm:text-4xl diner-neon-text tracking-wide" style={{ textShadow: '0 0 10px #F3A2BE, 0 0 20px #F3A2BE, 0 0 30px #e11d48' }}>
+              Loppiloo's Admin
+            </h1>
           </div>
-          <h1 className="text-3xl font-black text-amber-400 gold-text-glow font-serif">
-            Menyhantering | Loppiloo's
-          </h1>
-          <p className="text-xs text-rose-200">
-            Lägg till nya godbitar eller bocka i vad som finns tillgängligt i köket.
+          <p className="text-[#4F8881] text-xs sm:text-sm font-bold bg-[#F0F9F8]/90 px-4 py-1 rounded-full border border-[#81BFB7]/40">
+            ⚙️ Lägg till rätter, hantera priser & bocka i lagerstatus för diner-menyn.
           </p>
         </header>
 
         {usingFallback && (
-          <div className="bg-amber-950/60 border border-amber-500/30 rounded-2xl p-4 text-xs text-amber-200 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+          <div className="bg-[#F0F9F8] border border-[#81BFB7] rounded-2xl p-4 text-xs text-[#4F8881] flex items-center gap-3 shadow-sm">
+            <AlertCircle className="w-5 h-5 text-[#F3A2BE] shrink-0" />
             <div>
               <span className="font-bold">Observera (Demoläge):</span> Supabase är inte anslutet. Ändringar sparas i lokal vy. För att spara i molnet permanent, ställ in `NEXT_PUBLIC_SUPABASE_URL` och kör `supabase-schema.sql`!
             </div>
@@ -158,30 +157,30 @@ export default function AdminPage() {
         )}
 
         {/* ➕ Lägg till ny rätt (Add item form) */}
-        <section className="pinchos-glass-card rounded-2xl p-6 border border-amber-500/30 shadow-xl">
-          <h2 className="text-xl font-black text-amber-400 mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5" /> Lägg till ny rätt på cirkusmenyn
+        <section className="diner-glass-card rounded-3xl p-6 border-2 border-[#81BFB7]/40 shadow-diner-card">
+          <h2 className="text-xl font-black text-[#2D3748] mb-4 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-[#F3A2BE] stroke-[3]" /> Lägg till ny rätt på cirkusmenyn
           </h2>
 
           <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-300">Titel & Emoji</label>
+              <label className="text-xs font-bold text-[#4F8881]">Titel & Emoji</label>
               <input
                 type="text"
                 required
                 placeholder="t.ex. Mini Taco Smash 🌮"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-slate-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                className="bg-white border-2 border-[#C6E6E3] rounded-2xl px-4 py-2.5 text-sm text-[#2D3748] placeholder-[#81BFB7] focus:outline-none focus:border-[#81BFB7]"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-300">Kategori</label>
+              <label className="text-xs font-bold text-[#4F8881]">Kategori</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as CategoryType)}
-                className="bg-slate-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                className="bg-white border-2 border-[#C6E6E3] rounded-2xl px-4 py-2.5 text-sm text-[#2D3748] focus:outline-none focus:border-[#81BFB7]"
               >
                 <option value="Smårätter">Smårätter 🍔</option>
                 <option value="Candy Drinks">Candy Drinks 🍹</option>
@@ -190,35 +189,35 @@ export default function AdminPage() {
             </div>
 
             <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-xs font-bold text-slate-300">Beskrivning</label>
+              <label className="text-xs font-bold text-[#4F8881]">Beskrivning</label>
               <textarea
                 rows={2}
                 placeholder="Kort och smarrig beskrivning av rätten..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="bg-slate-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                className="bg-white border-2 border-[#C6E6E3] rounded-2xl px-4 py-2.5 text-sm text-[#2D3748] placeholder-[#81BFB7] focus:outline-none focus:border-[#81BFB7]"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-slate-300">Pris (SEK)</label>
+              <label className="text-xs font-bold text-[#4F8881]">Pris (SEK)</label>
               <input
                 type="number"
                 required
                 min={0}
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
-                className="bg-slate-900 border border-amber-500/30 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-400"
+                className="bg-white border-2 border-[#C6E6E3] rounded-2xl px-4 py-2.5 text-sm text-[#2D3748] focus:outline-none focus:border-[#81BFB7]"
               />
             </div>
 
             <div className="flex items-center gap-3 pt-6">
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-200">
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-extrabold text-[#2D3748]">
                 <input
                   type="checkbox"
                   checked={isAvailable}
                   onChange={(e) => setIsAvailable(e.target.checked)}
-                  className="w-5 h-5 rounded accent-amber-500 cursor-pointer"
+                  className="w-5 h-5 rounded accent-[#F3A2BE] cursor-pointer"
                 />
                  Tillgänglig direkt för beställning
               </label>
@@ -227,7 +226,7 @@ export default function AdminPage() {
             <div className="md:col-span-2 pt-2">
               <button
                 type="submit"
-                className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl shadow-gold-glow transition-all active:scale-95 text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                className="w-full bg-[#F3A2BE] hover:bg-[#e11d48] text-white font-black py-3.5 rounded-2xl shadow-md transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wide flex items-center justify-center gap-2"
               >
                 <Plus className="w-5 h-5 stroke-[3]" />
                 Spara & Publicera Rätt
@@ -237,52 +236,52 @@ export default function AdminPage() {
         </section>
 
         {/* 📋 Alla Menyobjekt (List & Toggle status) */}
-        <section className="pinchos-glass-card rounded-2xl p-6 border border-amber-500/30 shadow-xl space-y-4">
-          <div className="flex justify-between items-center border-b border-amber-500/20 pb-3">
-            <h2 className="text-xl font-black text-amber-400 flex items-center gap-2">
-              <Utensils className="w-5 h-5" /> Aktuell Meny ({items.length} rätter)
+        <section className="diner-glass-card rounded-3xl p-6 border-2 border-[#81BFB7]/40 shadow-diner-card space-y-4">
+          <div className="flex justify-between items-center border-b-2 border-[#81BFB7]/30 pb-3">
+            <h2 className="text-xl font-black text-[#2D3748] flex items-center gap-2">
+              <Utensils className="w-5 h-5 text-[#81BFB7]" /> Aktuell Meny ({items.length} rätter)
             </h2>
           </div>
 
           {loading ? (
-            <div className="text-center py-8 text-slate-400">Laddar menylista...</div>
+            <div className="text-center py-8 text-[#4F8881]">Laddar menylista...</div>
           ) : (
             <div className="space-y-3">
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className={`bg-slate-900/90 rounded-xl p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
-                    item.available ? 'border-amber-500/20' : 'border-rose-900/40 opacity-60'
+                  className={`bg-white rounded-2xl p-4 border-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-sm ${
+                    item.available ? 'border-[#C6E6E3]' : 'border-[#FFD3DD] bg-[#FFD3DD]/20 opacity-70'
                   }`}
                 >
                   <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-100 text-base">{item.title}</span>
-                      <span className="text-xs bg-slate-950 px-2 py-0.5 rounded border border-amber-500/30 text-amber-300 font-medium">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-extrabold text-[#2D3748] text-base">{item.title}</span>
+                      <span className="text-xs bg-[#F0F9F8] px-2.5 py-0.5 rounded-full border border-[#81BFB7]/40 text-[#4F8881] font-bold">
                         {item.category}
                       </span>
-                      <span className="text-xs text-amber-400 font-bold">{item.price} SEK</span>
+                      <span className="text-xs text-[#e11d48] font-black">{item.price} SEK</span>
                     </div>
-                    <p className="text-xs text-slate-400">{item.description}</p>
+                    <p className="text-xs text-[#4A5568]">{item.description}</p>
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2.5 shrink-0">
                     <button
                       onClick={() => handleToggleAvailable(item.id, item.available)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                      className={`px-3.5 py-2 rounded-xl text-xs font-black border-2 transition-all flex items-center gap-1.5 ${
                         item.available
-                          ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/60'
-                          : 'bg-rose-950/80 text-rose-300 border-rose-500/60'
+                          ? 'bg-[#C6E6E3] text-[#4F8881] border-[#81BFB7]'
+                          : 'bg-[#FFD3DD] text-[#e11d48] border-[#F3A2BE]'
                       }`}
                     >
-                      {item.available ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                      {item.available ? <Check className="w-4 h-4 stroke-[3]" /> : <X className="w-4 h-4 stroke-[3]" />}
                       <span>{item.available ? 'Tillgänglig' : 'Slut (Ej i lager)'}</span>
                     </button>
 
                     <button
                       onClick={() => handleDeleteItem(item.id)}
-                      className="p-2 text-rose-400 hover:text-rose-200 hover:bg-rose-950/60 rounded-xl border border-rose-900/40 transition-colors"
+                      className="p-2 text-[#e11d48] hover:bg-[#FFD3DD] rounded-xl border border-[#F3A2BE] transition-colors"
                       title="Ta bort"
                     >
                       <Trash2 className="w-4 h-4" />
