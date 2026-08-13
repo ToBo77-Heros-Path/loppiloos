@@ -65,74 +65,53 @@ export default function KitchenPage() {
     }
   };
 
+  // 1. Fetch existing orders & menu items upon mounting
   useEffect(() => {
     fetchOrders();
     fetchMenuItems();
 
-    if (!isSupabaseConfigured()) {
-      setOrders([
-        {
-          id: 'demo-1',
-          guest_name: 'Tommy',
-          items: [
-            { id: '1', title: 'Mini Cheeseburger 🍔', quantity: 2, price: 0, category: 'Smårätter' },
-            { id: '3', title: 'Sötpotatispommes 🍟', quantity: 1, price: 0, category: 'Smårätter' },
-            { id: '7', title: 'Fizz Wiz Bubblegum 🍬', quantity: 1, price: 0, category: 'Candy Drinks' },
-          ],
-          status: 'Inkommen',
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: 'demo-2',
-          guest_name: 'Linda',
-          items: [
-            { id: '4', title: 'Tacos de Carne 🌮', quantity: 3, price: 0, category: 'Smårätter' },
-            { id: '12', title: 'Churros med Nutella 🍫', quantity: 1, price: 0, category: 'Dessert' },
-          ],
-          status: 'Inkommen',
-          created_at: new Date(Date.now() - 5 * 60000).toISOString(),
-        },
-      ]);
-      setMenuItems(DEFAULT_MENU_ITEMS);
-      setLoadingOrders(false);
-      setLoadingMenu(false);
-      return;
-    }
-
-    // Realtime subscription for orders
-    const subscription = supabase
-      .channel('kitchen-orders-realtime')
+    // 2. Realtime listener on 'custom-filter-channel' for INSERT and UPDATE (and DELETE)
+    const channel = supabase
+      .channel('custom-filter-channel')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'orders' },
+        { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
-          console.log('New realtime order arrived!', payload);
-          const newOrder = payload.new as Order;
-          setOrders((prev) => [newOrder, ...prev]);
+          console.log('Realtime postgres_change event on orders table:', payload);
 
-          if (soundEnabled) {
-            playPlingSound();
+          if (payload.eventType === 'INSERT') {
+            const newOrder = payload.new as Order;
+            setOrders((prev) => [
+              newOrder,
+              ...prev.filter((o) => o.id !== newOrder.id),
+            ]);
+
+            if (soundEnabled) {
+              playPlingSound();
+            }
+            setLastNotificationTime(new Date().toLocaleTimeString('sv-SE'));
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedOrder = payload.new as Order;
+            setOrders((prev) =>
+              prev.map((o) => (o.id === updatedOrder.id ? updatedOrder : o))
+            );
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old.id;
+            setOrders((prev) => prev.filter((o) => o.id !== deletedId));
           }
-          setLastNotificationTime(new Date().toLocaleTimeString('sv-SE'));
         }
       )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'orders' },
-        (payload) => {
-          const updated = payload.new as Order;
-          setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-        }
-      )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Supabase Realtime channel status:', status);
+      });
 
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(channel);
     };
   }, [soundEnabled]);
 
+  // Fetch orders from Supabase (order by created_at descending)
   const fetchOrders = async () => {
-    if (!isSupabaseConfigured()) return;
     setLoadingOrders(true);
     try {
       const { data, error } = await supabase
@@ -141,9 +120,34 @@ export default function KitchenPage() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching orders:', error);
-      } else if (data) {
+        console.error('Error fetching orders from Supabase:', error);
+      } else if (data && data.length > 0) {
         setOrders(data as Order[]);
+      } else if (!data || data.length === 0) {
+        // Fallback demo orders if database table is empty or uninitialized
+        setOrders((prev) => (prev.length > 0 ? prev : [
+          {
+            id: 'demo-1',
+            guest_name: 'Tommy',
+            items: [
+              { id: '1', title: 'Mini Cheeseburger 🍔', quantity: 2, price: 0, category: 'Smårätter' },
+              { id: '3', title: 'Sötpotatispommes 🍟', quantity: 1, price: 0, category: 'Smårätter' },
+              { id: '7', title: 'Fizz Wiz Bubblegum 🍬', quantity: 1, price: 0, category: 'Candy Drinks' },
+            ],
+            status: 'Inkommen',
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 'demo-2',
+            guest_name: 'Linda',
+            items: [
+              { id: '4', title: 'Tacos de Carne 🌮', quantity: 3, price: 0, category: 'Smårätter' },
+              { id: '12', title: 'Jordgubbssylt & Vispad Grädde 🍓', quantity: 1, price: 0, category: 'Bygg din Tårta' },
+            ],
+            status: 'Inkommen',
+            created_at: new Date(Date.now() - 5 * 60000).toISOString(),
+          },
+        ]));
       }
     } catch (err) {
       console.error('Failed fetching kitchen orders:', err);
@@ -153,7 +157,6 @@ export default function KitchenPage() {
   };
 
   const fetchMenuItems = async () => {
-    if (!isSupabaseConfigured()) return;
     setLoadingMenu(true);
     try {
       const { data, error } = await supabase
@@ -161,7 +164,7 @@ export default function KitchenPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         setMenuItems(DEFAULT_MENU_ITEMS);
       } else {
         setMenuItems(data as MenuItem[]);
@@ -174,20 +177,26 @@ export default function KitchenPage() {
     }
   };
 
+  // 3. Update status: Mark as done optimistic local update + Supabase update
   const handleMarkAsDone = async (orderId: string) => {
+    // Immediate local state update without reflash
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: 'Klar' as const } : o))
     );
 
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase
-          .from('orders')
-          .update({ status: 'Klar' })
-          .eq('id', orderId);
-      } catch (err) {
-        console.error('Failed updating order status in Supabase:', err);
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: 'Klar' })
+        .eq('id', orderId);
+
+      if (error) {
+        console.error('Failed updating order status in Supabase:', error);
+      } else {
+        console.log(`Order ${orderId} successfully marked as Klar in Supabase.`);
       }
+    } catch (err) {
+      console.error('Failed updating order status in Supabase:', err);
     }
   };
 
@@ -205,27 +214,25 @@ export default function KitchenPage() {
       available: newAvailable,
     };
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('menu_items').insert([itemData]).select();
-        if (error) {
-          console.error('Error adding dish:', error);
-        } else if (data && data[0]) {
-          setMenuItems((prev) => [data[0] as MenuItem, ...prev]);
-        }
-      } catch (err) {
-        console.error('Failed adding dish:', err);
+    try {
+      const { data, error } = await supabase.from('menu_items').insert([itemData]).select();
+      if (error) {
+        console.error('Error adding dish to Supabase:', error);
+        // Fallback local update
+        const created: MenuItem = {
+          id: `kitchen-dish-${Date.now()}`,
+          title: itemData.title!,
+          description: itemData.description!,
+          category: itemData.category!,
+          price: 0,
+          available: itemData.available!,
+        };
+        setMenuItems((prev) => [created, ...prev]);
+      } else if (data && data[0]) {
+        setMenuItems((prev) => [data[0] as MenuItem, ...prev]);
       }
-    } else {
-      const created: MenuItem = {
-        id: `kitchen-dish-${Date.now()}`,
-        title: itemData.title!,
-        description: itemData.description!,
-        category: itemData.category!,
-        price: 0,
-        available: itemData.available!,
-      };
-      setMenuItems((prev) => [created, ...prev]);
+    } catch (err) {
+      console.error('Failed adding dish:', err);
     }
 
     setNewTitle('');
@@ -240,15 +247,13 @@ export default function KitchenPage() {
       prev.map((i) => (i.id === id ? { ...i, available: nextAvailable } : i))
     );
 
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase
-          .from('menu_items')
-          .update({ available: nextAvailable })
-          .eq('id', id);
-      } catch (err) {
-        console.error('Failed toggling availability:', err);
-      }
+    try {
+      await supabase
+        .from('menu_items')
+        .update({ available: nextAvailable })
+        .eq('id', id);
+    } catch (err) {
+      console.error('Failed toggling availability in Supabase:', err);
     }
   };
 
@@ -257,12 +262,10 @@ export default function KitchenPage() {
 
     setMenuItems((prev) => prev.filter((i) => i.id !== id));
 
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('menu_items').delete().eq('id', id);
-      } catch (err) {
-        console.error('Failed deleting dish:', err);
-      }
+    try {
+      await supabase.from('menu_items').delete().eq('id', id);
+    } catch (err) {
+      console.error('Failed deleting dish in Supabase:', err);
     }
   };
 
