@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect, useRef } from 'react';
 import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
 import { Order, MenuItem, CategoryType } from '@/types/database';
-import { BellRing, CheckCircle2, Clock, Volume2, RefreshCw, ChefHat, Plus, Trash2, Check, X, Utensils, Settings, AlertCircle } from 'lucide-react';
+import { BellRing, CheckCircle2, Clock, Volume2, RefreshCw, ChefHat, Plus, Trash2, Check, X, Utensils, Settings } from 'lucide-react';
 import Link from 'next/link';
 
 export default function KitchenPage() {
@@ -21,7 +21,6 @@ export default function KitchenPage() {
   const [newTitle, setNewTitle] = useState('');
   const [newDescription, setNewDescription] = useState('');
   const [newCategory, setNewCategory] = useState<CategoryType>('Smårätter');
-  const [newPrice, setNewPrice] = useState<number>(35);
   const [newAvailable, setNewAvailable] = useState(true);
   const [isAddingDish, setIsAddingDish] = useState(false);
 
@@ -76,9 +75,9 @@ export default function KitchenPage() {
           id: 'demo-1',
           guest_name: 'Tommy',
           items: [
-            { id: '1', title: 'Mini Cheeseburger 🍔', quantity: 2, price: 38, category: 'Smårätter' },
-            { id: '3', title: 'Sötpotatispommes 🍟', quantity: 1, price: 32, category: 'Smårätter' },
-            { id: '7', title: 'Fizz Wiz Bubblegum 🍬', quantity: 1, price: 42, category: 'Candy Drinks' },
+            { id: '1', title: 'Mini Cheeseburger 🍔', quantity: 2, price: 0, category: 'Smårätter' },
+            { id: '3', title: 'Sötpotatispommes 🍟', quantity: 1, price: 0, category: 'Smårätter' },
+            { id: '7', title: 'Fizz Wiz Bubblegum 🍬', quantity: 1, price: 0, category: 'Candy Drinks' },
           ],
           status: 'Inkommen',
           created_at: new Date().toISOString(),
@@ -87,8 +86,8 @@ export default function KitchenPage() {
           id: 'demo-2',
           guest_name: 'Linda',
           items: [
-            { id: '4', title: 'Tacos de Carne 🌮', quantity: 3, price: 36, category: 'Smårätter' },
-            { id: '12', title: 'Churros med Nutella 🍫', quantity: 1, price: 38, category: 'Dessert' },
+            { id: '4', title: 'Tacos de Carne 🌮', quantity: 3, price: 0, category: 'Smårätter' },
+            { id: '12', title: 'Churros med Nutella 🍫', quantity: 1, price: 0, category: 'Dessert' },
           ],
           status: 'Inkommen',
           created_at: new Date(Date.now() - 5 * 60000).toISOString(),
@@ -202,7 +201,7 @@ export default function KitchenPage() {
       title: newTitle.trim(),
       description: newDescription.trim(),
       category: newCategory,
-      price: newPrice,
+      price: 0,
       available: newAvailable,
     };
 
@@ -223,7 +222,7 @@ export default function KitchenPage() {
         title: itemData.title!,
         description: itemData.description!,
         category: itemData.category!,
-        price: itemData.price!,
+        price: 0,
         available: itemData.available!,
       };
       setMenuItems((prev) => [created, ...prev]);
@@ -231,7 +230,6 @@ export default function KitchenPage() {
 
     setNewTitle('');
     setNewDescription('');
-    setNewPrice(35);
     setNewAvailable(true);
     setIsAddingDish(false);
   };
@@ -284,7 +282,7 @@ export default function KitchenPage() {
           <div className="hidden sm:block">
             <p className="text-xs text-[#4F8881] font-bold flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#81BFB7] animate-ping" />
-              Live orderström
+              🍿 LOPPILOO'S PARTY DINER 🍿
               {lastNotificationTime && ` • Senaste pling: ${lastNotificationTime}`}
             </p>
           </div>
@@ -516,19 +514,7 @@ export default function KitchenPage() {
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#4F8881]">Pris (SEK)</label>
-                  <input
-                    type="number"
-                    required
-                    min={0}
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(Number(e.target.value))}
-                    className="bg-white border-2 border-[#C6E6E3] rounded-2xl px-4 py-2.5 text-sm text-[#2D3748] focus:outline-none focus:border-[#81BFB7]"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 pt-6">
+                <div className="flex items-center gap-3 pt-4 md:col-span-2">
                   <label className="flex items-center gap-2 cursor-pointer text-sm font-extrabold text-[#2D3748]">
                     <input
                       type="checkbox"
@@ -578,7 +564,6 @@ export default function KitchenPage() {
                           <span className="text-xs bg-[#F0F9F8] px-2.5 py-0.5 rounded-full border border-[#81BFB7]/40 text-[#4F8881] font-bold">
                             {item.category}
                           </span>
-                          <span className="text-xs text-[#e11d48] font-black">{item.price} SEK</span>
                         </div>
                         <p className="text-xs text-[#4A5568]">{item.description}</p>
                       </div>

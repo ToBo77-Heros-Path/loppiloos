@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
 import { MenuItem, CategoryType } from '@/types/database';
 import confetti from 'canvas-confetti';
-import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine, IceCream, AlertCircle } from 'lucide-react';
+import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine, IceCream } from 'lucide-react';
 
 const PRESET_GUESTS = ['Tommy', 'Linda', 'Bella', 'Marley', 'Felicia', 'Kornelia', 'Annan'];
 
@@ -25,9 +25,7 @@ export default function GuestPage() {
     id: string;
     guestName: string;
     items: { title: string; quantity: number; price: number }[];
-    totalPrice: number;
   } | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
 
   // Fetch menu items from Supabase
   useEffect(() => {
@@ -37,9 +35,7 @@ export default function GuestPage() {
   const fetchMenuItems = async () => {
     setLoading(true);
     if (!isSupabaseConfigured()) {
-      console.log('Supabase not fully configured, using fallback menu items.');
       setMenuItems(DEFAULT_MENU_ITEMS.filter((i) => i.available));
-      setUsingFallback(true);
       setLoading(false);
       return;
     }
@@ -52,17 +48,13 @@ export default function GuestPage() {
         .order('created_at', { ascending: true });
 
       if (error || !data || data.length === 0) {
-        console.warn('Falling back to default items due to query:', error);
         setMenuItems(DEFAULT_MENU_ITEMS.filter((i) => i.available));
-        setUsingFallback(true);
       } else {
         setMenuItems(data as MenuItem[]);
-        setUsingFallback(false);
       }
     } catch (err) {
       console.error('Error fetching menu items:', err);
       setMenuItems(DEFAULT_MENU_ITEMS.filter((i) => i.available));
-      setUsingFallback(true);
     } finally {
       setLoading(false);
     }
@@ -99,30 +91,23 @@ export default function GuestPage() {
           id: item.id,
           title: item.title,
           quantity,
-          price: item.price,
+          price: item.price || 0,
           category: item.category,
         };
       })
       .filter(Boolean) as { id: string; title: string; quantity: number; price: number; category: CategoryType }[];
 
-    const totalPrice = orderedItems.reduce((acc, curr) => acc + curr.price * curr.quantity, 0);
     const mockOrderId = `LOP-${Math.floor(1000 + Math.random() * 9000)}`;
 
     if (isSupabaseConfigured()) {
       try {
-        const { data, error } = await supabase.from('orders').insert([
+        await supabase.from('orders').insert([
           {
             guest_name: activeGuestName,
             items: orderedItems,
             status: 'Inkommen',
           },
-        ]).select();
-
-        if (error) {
-          console.error('Supabase order insert error:', error);
-        } else if (data && data[0]) {
-          console.log('Order created successfully:', data[0]);
-        }
+        ]);
       } catch (err) {
         console.error('Failed sending order to Supabase:', err);
       }
@@ -130,17 +115,16 @@ export default function GuestPage() {
 
     // Trigger Festive Confetti Pop-up!
     confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.6 },
-      colors: ['#F3A2BE', '#FFD3DD', '#81BFB7', '#C6E6E3', '#ffffff'],
+      particleCount: 150,
+      spread: 90,
+      origin: { y: 0.5 },
+      colors: ['#F3A2BE', '#FFD3DD', '#81BFB7', '#C6E6E3', '#ffffff', '#e11d48'],
     });
 
     setLastOrderDetails({
       id: mockOrderId,
       guestName: activeGuestName,
       items: orderedItems,
-      totalPrice,
     });
 
     setShowOrderModal(true);
@@ -164,8 +148,8 @@ export default function GuestPage() {
         
         {/* Retro Diner Chrome Border Banner */}
         <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 bg-[#F0F9F8]/90 border border-[#81BFB7] text-[#4F8881] px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-3 shadow-sm backdrop-blur-sm">
-            <Sparkles className="w-3.5 h-3.5 text-[#F3A2BE]" /> 50's American Diner <Sparkles className="w-3.5 h-3.5 text-[#F3A2BE]" />
+          <div className="inline-flex items-center gap-2 bg-[#F0F9F8]/90 border border-[#81BFB7] text-[#4F8881] px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-3 shadow-sm backdrop-blur-sm">
+            <Sparkles className="w-4 h-4 text-[#F3A2BE]" /> 🍿 LOPPILOO'S PARTY DINER 🍿 <Sparkles className="w-4 h-4 text-[#F3A2BE]" />
           </div>
           
           {/* Neon Sign for Loppiloo's */}
@@ -175,23 +159,11 @@ export default function GuestPage() {
             </h1>
           </div>
 
-          <p className="text-[#4F8881] text-xs sm:text-sm mt-2 font-bold tracking-wide bg-[#F0F9F8]/80 px-4 py-1 rounded-full border border-[#81BFB7]/40">
-            🍦 Små rätter, söta milkshake-drinkar & 50-tals lyx!
+          <p className="text-[#4F8881] text-xs sm:text-sm mt-2 font-black tracking-wide bg-[#F0F9F8]/90 px-4 py-1.5 rounded-full border border-[#81BFB7]/40 shadow-sm">
+            🎉 Felicia 10 år! Plocka dina favoriter & beställ direkt i appen!
           </p>
         </div>
       </header>
-
-      {/* Fallback Notice if Supabase env vars not set */}
-      {usingFallback && (
-        <div className="w-full max-w-2xl px-4 mt-4">
-          <div className="bg-[#F0F9F8] border border-[#81BFB7] rounded-2xl p-3 text-xs text-[#4F8881] flex items-center gap-2.5 shadow-sm">
-            <AlertCircle className="w-5 h-5 text-[#F3A2BE] shrink-0" />
-            <div>
-              <span className="font-bold">Demoläge aktivt:</span> Supabase-miljövariabler saknas eller databasen har inte initierats. Kör <code className="bg-[#FFD3DD] px-1.5 py-0.5 rounded text-[#2D3748] font-mono">supabase-schema.sql</code> i Supabase SQL Editor för fullständig persistering!
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Container */}
       <div className="w-full max-w-2xl px-4 py-6 flex flex-col gap-6">
@@ -284,13 +256,10 @@ export default function GuestPage() {
                     <p className="text-xs text-[#4A5568] mt-1 leading-relaxed line-clamp-2">
                       {item.description}
                     </p>
-                    <div className="mt-2 text-[#e11d48] font-black text-sm flex items-center gap-1">
-                      <span className="bg-[#FFD3DD] px-2.5 py-0.5 rounded-full border border-[#F3A2BE]">{item.price} SEK</span>
-                    </div>
                   </div>
 
                   {/* Quantity controls */}
-                  <div className="flex items-center gap-2 bg-white/90 p-1.5 rounded-2xl border-2 border-[#81BFB7]/40 shadow-sm">
+                  <div className="flex items-center gap-2 bg-white/90 p-1.5 rounded-2xl border-2 border-[#81BFB7]/40 shadow-sm shrink-0">
                     {qty > 0 && (
                       <>
                         <button
@@ -349,29 +318,29 @@ export default function GuestPage() {
         <div className="fixed inset-0 bg-[#2D3748]/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-curtain-reveal">
           <div className="diner-glass-card border-4 border-[#F3A2BE] rounded-3xl p-6 max-w-md w-full text-center relative shadow-[0_0_30px_rgba(243,162,190,0.5)] flex flex-col items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#F3A2BE] to-[#81BFB7] flex items-center justify-center shadow-lg border-2 border-white text-3xl">
-              🍦
+              🎉
             </div>
 
-            <div className="space-y-1">
-              <span className="text-xs uppercase tracking-widest text-[#4F8881] font-black">
+            <div className="space-y-1.5">
+              <span className="text-xs uppercase tracking-widest text-[#F3A2BE] font-black bg-[#FFD3DD]/60 px-3 py-1 rounded-full border border-[#F3A2BE]/40">
                 Order Mottagen!
               </span>
-              <h2 className="text-2xl font-black text-[#2D3748]">
-                Tack {lastOrderDetails.guestName}!
+              <h2 className="text-xl sm:text-2xl font-black text-[#2D3748]">
+                Tack för din beställning!
               </h2>
-              <p className="text-xs text-[#4F8881] font-semibold">
-                Din beställning skickades direkt till köket på Loppiloo's.
+              <p className="text-sm text-[#4F8881] font-bold">
+                Köket har tagit emot din order.
               </p>
             </div>
 
             {/* Order Items List */}
             <div className="w-full bg-white/90 rounded-2xl p-4 border border-[#81BFB7]/40 max-h-48 overflow-y-auto text-left text-xs space-y-2">
               <div className="flex justify-between font-bold text-[#4F8881] pb-1 border-b border-[#81BFB7]/30">
-                <span>Rätt</span>
+                <span>Rätt (Gäst: {lastOrderDetails.guestName})</span>
                 <span>Antal</span>
               </div>
               {lastOrderDetails.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-[#2D3748] font-medium">
+                <div key={idx} className="flex justify-between text-[#2D3748] font-semibold">
                   <span className="truncate pr-2">{item.title}</span>
                   <span className="font-bold text-[#e11d48]">x{item.quantity}</span>
                 </div>

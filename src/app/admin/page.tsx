@@ -5,8 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState, useEffect } from 'react';
 import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
 import { MenuItem, CategoryType } from '@/types/database';
-import { Plus, Trash2, Check, X, Settings, Utensils, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
+import { Plus, Trash2, Check, X, Utensils } from 'lucide-react';
 
 export default function AdminPage() {
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -16,10 +15,7 @@ export default function AdminPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<CategoryType>('Smårätter');
-  const [price, setPrice] = useState<number>(35);
   const [isAvailable, setIsAvailable] = useState(true);
-
-  const [usingFallback, setUsingFallback] = useState(false);
 
   useEffect(() => {
     fetchAdminItems();
@@ -29,7 +25,6 @@ export default function AdminPage() {
     setLoading(true);
     if (!isSupabaseConfigured()) {
       setItems(DEFAULT_MENU_ITEMS);
-      setUsingFallback(true);
       setLoading(false);
       return;
     }
@@ -41,17 +36,13 @@ export default function AdminPage() {
         .order('created_at', { ascending: false });
 
       if (error || !data) {
-        console.warn('Fallback due to Supabase admin fetch error:', error);
         setItems(DEFAULT_MENU_ITEMS);
-        setUsingFallback(true);
       } else {
         setItems(data as MenuItem[]);
-        setUsingFallback(false);
       }
     } catch (err) {
       console.error('Error fetching admin menu items:', err);
       setItems(DEFAULT_MENU_ITEMS);
-      setUsingFallback(true);
     } finally {
       setLoading(false);
     }
@@ -65,7 +56,7 @@ export default function AdminPage() {
       title: title.trim(),
       description: description.trim(),
       category,
-      price,
+      price: 0,
       available: isAvailable,
     };
 
@@ -81,13 +72,12 @@ export default function AdminPage() {
         console.error('Error inserting menu item:', err);
       }
     } else {
-      // Local fallback state
       const createdItem: MenuItem = {
         id: `mock-${Date.now()}`,
         title: newItem.title!,
         description: newItem.description!,
         category: newItem.category!,
-        price: newItem.price!,
+        price: 0,
         available: newItem.available!,
       };
       setItems((prev) => [createdItem, ...prev]);
@@ -96,7 +86,6 @@ export default function AdminPage() {
     // Reset form
     setTitle('');
     setDescription('');
-    setPrice(35);
     setIsAvailable(true);
   };
 
@@ -143,23 +132,14 @@ export default function AdminPage() {
             </h1>
           </div>
           <p className="text-[#4F8881] text-xs sm:text-sm font-bold bg-[#F0F9F8]/90 px-4 py-1 rounded-full border border-[#81BFB7]/40">
-            ⚙️ Lägg till rätter, hantera priser & bocka i lagerstatus för diner-menyn.
+            🍿 LOPPILOO'S PARTY DINER 🍿 | Hantera rätter & tillgänglighet
           </p>
         </header>
-
-        {usingFallback && (
-          <div className="bg-[#F0F9F8] border border-[#81BFB7] rounded-2xl p-4 text-xs text-[#4F8881] flex items-center gap-3 shadow-sm">
-            <AlertCircle className="w-5 h-5 text-[#F3A2BE] shrink-0" />
-            <div>
-              <span className="font-bold">Observera (Demoläge):</span> Supabase är inte anslutet. Ändringar sparas i lokal vy. För att spara i molnet permanent, ställ in `NEXT_PUBLIC_SUPABASE_URL` och kör `supabase-schema.sql`!
-            </div>
-          </div>
-        )}
 
         {/* ➕ Lägg till ny rätt (Add item form) */}
         <section className="diner-glass-card rounded-3xl p-6 border-2 border-[#81BFB7]/40 shadow-diner-card">
           <h2 className="text-xl font-black text-[#2D3748] mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-[#F3A2BE] stroke-[3]" /> Lägg till ny rätt på cirkusmenyn
+            <Plus className="w-5 h-5 text-[#F3A2BE] stroke-[3]" /> Lägg till ny rätt på menyn
           </h2>
 
           <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -199,19 +179,7 @@ export default function AdminPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-[#4F8881]">Pris (SEK)</label>
-              <input
-                type="number"
-                required
-                min={0}
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value))}
-                className="bg-white border-2 border-[#C6E6E3] rounded-2xl px-4 py-2.5 text-sm text-[#2D3748] focus:outline-none focus:border-[#81BFB7]"
-              />
-            </div>
-
-            <div className="flex items-center gap-3 pt-6">
+            <div className="flex items-center gap-3 pt-4 md:col-span-2">
               <label className="flex items-center gap-2 cursor-pointer text-sm font-extrabold text-[#2D3748]">
                 <input
                   type="checkbox"
@@ -260,7 +228,6 @@ export default function AdminPage() {
                       <span className="text-xs bg-[#F0F9F8] px-2.5 py-0.5 rounded-full border border-[#81BFB7]/40 text-[#4F8881] font-bold">
                         {item.category}
                       </span>
-                      <span className="text-xs text-[#e11d48] font-black">{item.price} SEK</span>
                     </div>
                     <p className="text-xs text-[#4A5568]">{item.description}</p>
                   </div>
