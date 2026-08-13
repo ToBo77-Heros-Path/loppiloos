@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-slate-950;
+  }
+}
+
+/* Custom Circus Stripe Headers & Accents */
+.circus-stripe-bg {
+  background: repeating-linear-gradient(
+    45deg,
+    #881337,
+    #881337 25px,
+    #4c0519 25px,
+    #4c0519 50px
+  );
+}
+
+.circus-border-gold {
+  border: 2px solid #f59e0b;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.3), inset 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+.gold-text-glow {
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5), 0 0 20px rgba(251, 191, 36, 0.3);
+}
+
+.red-text-glow {
+  text-shadow: 0 0 12px rgba(225, 29, 72, 0.6);
+}
+
+/* Glassmorphism Card Style */
+.pinchos-glass-card {
+  background: rgba(30, 41, 59, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.pinchos-glass-card:hover {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(245, 158, 11, 0.2);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #881337;
+  border-radius: 4px;
+  border: 1px solid #f59e0b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9f1239;
+}
