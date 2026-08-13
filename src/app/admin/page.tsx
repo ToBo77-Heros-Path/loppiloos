@@ -164,6 +164,7 @@ export default function AdminPage() {
               >
                 <option value="Smårätter">Smårätter 🍔</option>
                 <option value="Candy Drinks">Candy Drinks 🍹</option>
+                <option value="Bygg din Tårta">🎂 Bygg din Tårta</option>
                 <option value="Dessert">Dessert 🍨</option>
               </select>
             </div>

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
 import { MenuItem, CategoryType } from '@/types/database';
 import confetti from 'canvas-confetti';
-import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine, IceCream } from 'lucide-react';
+import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine, Cake } from 'lucide-react';
 
 const PRESET_GUESTS = ['Tommy', 'Linda', 'Bella', 'Marley', 'Felicia', 'Kornelia', 'Annan'];
 
@@ -135,10 +135,15 @@ export default function GuestPage() {
   const categories: { key: CategoryType; label: string; icon: React.ReactNode }[] = [
     { key: 'Smårätter', label: 'Smårätter', icon: <UtensilsCrossed className="w-4 h-4" /> },
     { key: 'Candy Drinks', label: 'Candy Drinks', icon: <Wine className="w-4 h-4" /> },
-    { key: 'Dessert', label: 'Dessert', icon: <IceCream className="w-4 h-4" /> },
+    { key: 'Bygg din Tårta', label: '🎂 Bygg din Tårta', icon: <Cake className="w-4 h-4" /> },
   ];
 
-  const filteredItems = menuItems.filter((i) => i.category === selectedCategory);
+  const filteredItems = menuItems.filter((i) => {
+    if (selectedCategory === 'Bygg din Tårta') {
+      return i.category === 'Bygg din Tårta' || i.category === 'Dessert';
+    }
+    return i.category === selectedCategory;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#FFD3DD] via-[#F0F9F8] to-[#C6E6E3] text-[#2D3748] flex flex-col items-center">
@@ -225,6 +230,15 @@ export default function GuestPage() {
             );
           })}
         </section>
+
+        {/* 🎂 Info-banner för 'Bygg din Tårta' */}
+        {selectedCategory === 'Bygg din Tårta' && (
+          <div className="bg-[#FFD3DD]/90 border-2 border-[#F3A2BE] rounded-2xl p-3.5 text-center text-xs sm:text-sm font-black text-[#2D3748] shadow-sm flex items-center justify-center gap-2 animate-curtain-reveal">
+            <span className="text-lg">🎂</span>
+            <span>Välj de tillbehör och toppings du vill ha till din tårtbotten!</span>
+            <span className="text-lg">🎂</span>
+          </div>
+        )}
 
         {/* 📜 Menylista (Menu List) */}
         <section className="flex flex-col gap-4">

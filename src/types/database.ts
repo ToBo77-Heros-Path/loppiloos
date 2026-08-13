@@ -1,4 +1,4 @@
-export type CategoryType = 'Smårätter' | 'Candy Drinks' | 'Dessert';
+export type CategoryType = 'Smårätter' | 'Candy Drinks' | 'Bygg din Tårta' | 'Dessert';
 
 export interface MenuItem {
   id: string;
