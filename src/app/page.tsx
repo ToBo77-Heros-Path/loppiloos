@@ -97,39 +97,48 @@ export default function GuestPage() {
       })
       .filter(Boolean) as { id: string; title: string; quantity: number; price: number; category: CategoryType }[];
 
-    const mockOrderId = `LOP-${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      const { data, error } = await supabase.from('orders').insert([
+        {
+          guest_name: activeGuestName,
+          items: orderedItems,
+          status: 'Inkommen',
+        },
+      ]).select();
 
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('orders').insert([
-          {
-            guest_name: activeGuestName,
-            items: orderedItems,
-            status: 'Inkommen',
-          },
-        ]);
-      } catch (err) {
-        console.error('Failed sending order to Supabase:', err);
+      if (error) {
+        console.error('Supabase Error:', error);
+        alert('Kunde inte skicka beställning: ' + error.message);
+        setIsSubmitting(false);
+        return;
       }
+
+      console.log('Order sparades i Supabase:', data);
+      const insertedOrder = data && data[0] ? data[0] : null;
+      const orderId = insertedOrder?.id || `LOP-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // Trigger Festive Confetti Pop-up endast när error är null!
+      confetti({
+        particleCount: 150,
+        spread: 90,
+        origin: { y: 0.5 },
+        colors: ['#F3A2BE', '#FFD3DD', '#81BFB7', '#C6E6E3', '#ffffff', '#e11d48'],
+      });
+
+      setLastOrderDetails({
+        id: orderId,
+        guestName: activeGuestName,
+        items: orderedItems,
+      });
+
+      setShowOrderModal(true);
+      setCart({}); // Töm varukorgen endast vid success (error === null)
+    } catch (err: any) {
+      console.error('Exception caught sending order:', err);
+      alert('Kunde inte skicka beställning: ' + (err?.message || 'Ett nätverksfel uppstod.'));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Trigger Festive Confetti Pop-up!
-    confetti({
-      particleCount: 150,
-      spread: 90,
-      origin: { y: 0.5 },
-      colors: ['#F3A2BE', '#FFD3DD', '#81BFB7', '#C6E6E3', '#ffffff', '#e11d48'],
-    });
-
-    setLastOrderDetails({
-      id: mockOrderId,
-      guestName: activeGuestName,
-      items: orderedItems,
-    });
-
-    setShowOrderModal(true);
-    setCart({}); // Reset cart
-    setIsSubmitting(false);
   };
 
   const categories: { key: CategoryType; label: string; icon: React.ReactNode }[] = [
