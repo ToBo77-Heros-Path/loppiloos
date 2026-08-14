@@ -10,6 +10,12 @@ import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine,
 
 const PRESET_GUESTS = ['Tommy', 'Linda', 'Bella', 'Marley', 'Felicia', 'Kornelia', 'Annan'];
 
+interface CartItem {
+  id: number | string;
+  title: string;
+  quantity: number;
+}
+
 export default function GuestPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,14 +23,14 @@ export default function GuestPage() {
   const [customGuest, setCustomGuest] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Smårätter');
   
-  // Cart state: map of menuItem.id -> quantity
-  const [cart, setCart] = useState<{ [id: string]: number }>({});
+  // Cart state: array of CartItem
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [lastOrderDetails, setLastOrderDetails] = useState<{
     id: string;
     guestName: string;
-    items: { title: string; quantity: number; price: number }[];
+    items: { title: string; quantity: number }[];
   } | null>(null);
 
   // Fetch menu items from Supabase
@@ -54,48 +60,51 @@ export default function GuestPage() {
     }
   };
 
-  const handleQuantityChange = (id: string, delta: number) => {
-    setCart((prev) => {
-      const current = prev[id] || 0;
-      const next = Math.max(0, current + delta);
-      if (next === 0) {
-        const copy = { ...prev };
-        delete copy[id];
-        return copy;
+  const handleQuantityChange = (item: MenuItem, delta: number) => {
+    setCart((prevCart) => {
+      const existingIndex = prevCart.findIndex((c) => c.id === item.id);
+      if (existingIndex > -1) {
+        const nextQty = prevCart[existingIndex].quantity + delta;
+        if (nextQty <= 0) {
+          return prevCart.filter((c) => c.id !== item.id);
+        }
+        const updated = [...prevCart];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: nextQty,
+        };
+        return updated;
+      } else if (delta > 0) {
+        return [...prevCart, { id: item.id, title: item.title, quantity: delta }];
       }
-      return { ...prev, [id]: next };
+      return prevCart;
     });
   };
 
-  const totalItemCount = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  const totalItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const activeGuestName = selectedGuest === 'Annan' && customGuest.trim() ? customGuest.trim() : selectedGuest;
 
   const handleSendOrder = async () => {
-    if (totalItemCount === 0 || isSubmitting) return;
+    if (cart.length === 0) {
+      alert('Välj minst en rätt innan du skickar!');
+      return;
+    }
+
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
 
-    // Prepare items array
-    const orderedItems = Object.entries(cart)
-      .map(([id, quantity]) => {
-        const item = menuItems.find((m) => m.id === id);
-        if (!item) return null;
-        return {
-          id: item.id,
-          title: item.title,
-          quantity,
-          price: item.price || 0,
-          category: item.category,
-        };
-      })
-      .filter(Boolean) as { id: string; title: string; quantity: number; price: number; category: CategoryType }[];
+    const itemsToSend = cart.map((item) => ({
+      title: item.title,
+      quantity: item.quantity,
+    }));
 
     try {
       const { data, error } = await supabase.from('orders').insert([
         {
           guest_name: activeGuestName,
-          items: orderedItems,
+          items: itemsToSend,
           status: 'Inkommen',
         },
       ]).select();
@@ -111,7 +120,7 @@ export default function GuestPage() {
       const insertedOrder = data && data[0] ? data[0] : null;
       const orderId = insertedOrder?.id || `LOP-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      // Trigger Festive Confetti Pop-up endast när error är null!
+      // Trigger Festive Confetti Pop-up
       confetti({
         particleCount: 150,
         spread: 90,
@@ -122,11 +131,11 @@ export default function GuestPage() {
       setLastOrderDetails({
         id: orderId,
         guestName: activeGuestName,
-        items: orderedItems,
+        items: itemsToSend,
       });
 
       setShowOrderModal(true);
-      setCart({}); // Töm varukorgen endast vid success (error === null)
+      setCart([]); // Töm varukorgen endast vid success
     } catch (err: any) {
       console.error('Exception caught sending order:', err);
       alert('Kunde inte skicka beställning: ' + (err?.message || 'Ett nätverksfel uppstod.'));
@@ -258,7 +267,8 @@ export default function GuestPage() {
             </div>
           ) : (
             filteredItems.map((item) => {
-              const qty = cart[item.id] || 0;
+              const cartItem = cart.find((c) => c.id === item.id);
+              const qty = cartItem ? cartItem.quantity : 0;
               return (
                 <div
                   key={item.id}
@@ -282,7 +292,7 @@ export default function GuestPage() {
                     {qty > 0 && (
                       <>
                         <button
-                          onClick={() => handleQuantityChange(item.id, -1)}
+                          onClick={() => handleQuantityChange(item, -1)}
                           className="w-8 h-8 rounded-xl bg-[#FFD3DD] text-[#e11d48] font-bold hover:bg-[#F3A2BE] hover:text-white flex items-center justify-center transition-colors active:scale-95"
                           aria-label="Minska"
                         >
@@ -294,7 +304,7 @@ export default function GuestPage() {
                       </>
                     )}
                     <button
-                      onClick={() => handleQuantityChange(item.id, 1)}
+                      onClick={() => handleQuantityChange(item, 1)}
                       className="w-8 h-8 rounded-xl bg-[#F3A2BE] text-white font-bold hover:bg-[#e11d48] flex items-center justify-center transition-all active:scale-95 shadow-md"
                       aria-label="Öka"
                     >
@@ -313,8 +323,8 @@ export default function GuestPage() {
         <div className="fixed bottom-4 left-0 right-0 px-4 max-w-2xl mx-auto z-40 animate-bounce-gentle">
           <button
             onClick={handleSendOrder}
-            disabled={isSubmitting}
-            className="w-full bg-gradient-to-r from-[#F3A2BE] via-[#e11d48] to-[#F3A2BE] border-2 border-white text-white font-black py-4 px-6 rounded-3xl shadow-[0_0_20px_rgba(243,162,190,0.7)] hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-between text-base"
+            disabled={isSubmitting || cart.length === 0}
+            className="w-full bg-gradient-to-r from-[#F3A2BE] via-[#e11d48] to-[#F3A2BE] border-2 border-white text-white font-black py-4 px-6 rounded-3xl shadow-[0_0_20px_rgba(243,162,190,0.7)] hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-between text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="flex items-center gap-3">
               <div className="bg-white text-[#e11d48] w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shadow-md">
