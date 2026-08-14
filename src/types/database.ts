@@ -12,17 +12,21 @@ export interface MenuItem {
 }
 
 export interface OrderItem {
-  id: string;
-  title: string;
-  quantity: number;
-  price: number;
-  category: CategoryType;
+  id?: string;
+  title?: string;
+  name?: string;
+  item_title?: string;
+  quantity?: number;
+  qty?: number;
+  count?: number;
+  price?: number;
+  category?: CategoryType;
 }
 
 export interface Order {
   id: string;
   guest_name: string;
-  items: OrderItem[];
+  items: OrderItem[] | string | any;
   status: 'Inkommen' | 'Klar';
   created_at: string;
 }

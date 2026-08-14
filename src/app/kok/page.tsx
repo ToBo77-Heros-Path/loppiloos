@@ -364,6 +364,22 @@ export default function KitchenPage() {
 
                   const isDone = isStatusMatch(order.status, 'Klar');
 
+                  const parsedItems: any[] = typeof order.items === 'string'
+                    ? (() => {
+                        try {
+                          const res = JSON.parse(order.items);
+                          return Array.isArray(res) ? res : [];
+                        } catch {
+                          return [];
+                        }
+                      })()
+                    : (Array.isArray(order.items) ? order.items : (order.items ? [order.items] : []));
+
+                  const totalCount = parsedItems.reduce((sum: number, item: any) => {
+                    const q = Number(item?.quantity || item?.qty || item?.count) || 1;
+                    return sum + q;
+                  }, 0);
+
                   return (
                     <div
                       key={order.id}
@@ -394,20 +410,24 @@ export default function KitchenPage() {
                         {/* Items List */}
                         <div className="space-y-2.5">
                           <div className="text-xs uppercase font-extrabold text-[#4F8881] tracking-wider">
-                            Beställda rätter ({order.items.reduce((sum, i) => sum + i.quantity, 0)} st)
+                            Beställda rätter ({totalCount} st)
                           </div>
                           <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                            {order.items.map((item, idx) => (
-                              <div
-                                key={idx}
-                                className="bg-[#F0F9F8] p-3 rounded-2xl border border-[#81BFB7]/30 flex justify-between items-center text-sm font-semibold text-[#2D3748]"
-                              >
-                                <span className="truncate pr-2">{item.title}</span>
-                                <span className="font-black text-white bg-[#F3A2BE] px-2.5 py-0.5 rounded-full text-xs shadow-sm">
-                                  x{item.quantity}
-                                </span>
-                              </div>
-                            ))}
+                            {parsedItems.map((item: any, idx: number) => {
+                              const name = item.title || item.name || item.item_title || 'Okänd rätt';
+                              const quantity = item.quantity || item.qty || item.count || 1;
+                              return (
+                                <div
+                                  key={idx}
+                                  className="bg-[#F0F9F8] p-3 rounded-2xl border border-[#81BFB7]/30 flex justify-between items-center text-sm font-semibold text-[#2D3748]"
+                                >
+                                  <span className="truncate pr-2 font-medium">{name}</span>
+                                  <span className="font-black text-white bg-[#F3A2BE] px-2.5 py-0.5 rounded-full text-xs shadow-sm">
+                                    x{quantity}
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
