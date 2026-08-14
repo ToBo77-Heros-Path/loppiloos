@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useRef } from 'react';
-import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Order, MenuItem, CategoryType } from '@/types/database';
 import { BellRing, CheckCircle2, Clock, Volume2, RefreshCw, ChefHat, Plus, Trash2, Check, X, Utensils, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -107,33 +107,9 @@ export default function KitchenPage() {
 
       if (error) {
         console.error('Error fetching orders from Supabase:', error);
-      } else if (data && data.length > 0) {
-        setOrders(data as Order[]);
-      } else if (!data || data.length === 0) {
-        // Fallback demo orders om tabellen är tom eller inte initierad ännu
-        setOrders((prev) => (prev.length > 0 ? prev : [
-          {
-            id: 'demo-1',
-            guest_name: 'Tommy',
-            items: [
-              { id: '1', title: 'Mini Cheeseburger 🍔', quantity: 2, price: 0, category: 'Smårätter' },
-              { id: '3', title: 'Sötpotatispommes 🍟', quantity: 1, price: 0, category: 'Smårätter' },
-              { id: '7', title: 'Fizz Wiz Bubblegum 🍬', quantity: 1, price: 0, category: 'Candy Drinks' },
-            ],
-            status: 'Inkommen',
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: 'demo-2',
-            guest_name: 'Linda',
-            items: [
-              { id: '4', title: 'Tacos de Carne 🌮', quantity: 3, price: 0, category: 'Smårätter' },
-              { id: '12', title: 'Jordgubbssylt & Vispad Grädde 🍓', quantity: 1, price: 0, category: 'Bygg din Tårta' },
-            ],
-            status: 'Inkommen',
-            created_at: new Date(Date.now() - 5 * 60000).toISOString(),
-          },
-        ]));
+        setOrders([]);
+      } else {
+        setOrders(data as Order[] || []);
       }
     } catch (err) {
       console.error('Failed fetching kitchen orders:', err);
@@ -150,14 +126,15 @@ export default function KitchenPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error || !data || data.length === 0) {
-        setMenuItems(DEFAULT_MENU_ITEMS);
+      if (error || !data) {
+        if (error) console.error('Failed fetching menu items in kitchen:', error);
+        setMenuItems([]);
       } else {
         setMenuItems(data as MenuItem[]);
       }
     } catch (err) {
       console.error('Failed fetching menu items in kitchen:', err);
-      setMenuItems(DEFAULT_MENU_ITEMS);
+      setMenuItems([]);
     } finally {
       setLoadingMenu(false);
     }
@@ -192,32 +169,19 @@ export default function KitchenPage() {
     if (!newTitle.trim()) return;
 
     setIsAddingDish(true);
-    const itemData: Partial<MenuItem> = {
-      title: newTitle.trim(),
-      description: newDescription.trim(),
-      category: newCategory,
-      price: 0,
-      available: newAvailable,
-    };
-
-    try {
-      const { data, error } = await supabase.from('menu_items').insert([itemData]).select();
-      if (error) {
-        console.error('Error adding dish to Supabase:', error);
-        const created: MenuItem = {
-          id: `kitchen-dish-${Date.now()}`,
-          title: itemData.title!,
-          description: itemData.description!,
-          category: itemData.category!,
-          price: 0,
-          available: itemData.available!,
-        };
-        setMenuItems((prev) => [created, ...prev]);
-      } else if (data && data[0]) {
-        setMenuItems((prev) => [data[0] as MenuItem, ...prev]);
+    const { data, error } = await supabase.from('menu_items').insert([
+      {
+        title: newTitle.trim(),
+        category: newCategory,
+        description: newDescription.trim(),
+        available: newAvailable,
       }
-    } catch (err) {
-      console.error('Failed adding dish:', err);
+    ]).select();
+
+    if (error) {
+      alert('Kunde inte spara rätt i databasen: ' + error.message);
+    } else {
+      fetchMenuItems();
     }
 
     setNewTitle('');
@@ -242,15 +206,14 @@ export default function KitchenPage() {
     }
   };
 
-  const handleDeleteDish = async (id: string) => {
+  const handleDeleteDish = async (itemId: string) => {
     if (!confirm('Vill du ta bort denna rätt permanent från menyn?')) return;
 
-    setMenuItems((prev) => prev.filter((i) => i.id !== id));
-
-    try {
-      await supabase.from('menu_items').delete().eq('id', id);
-    } catch (err) {
-      console.error('Failed deleting dish in Supabase:', err);
+    const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
+    if (error) {
+      alert('Kunde inte ta bort i Supabase: ' + error.message);
+    } else {
+      fetchMenuItems();
     }
   };
 
@@ -556,6 +519,8 @@ export default function KitchenPage() {
 
               {loadingMenu ? (
                 <div className="text-center py-8 text-[#4F8881]">Laddar rätter...</div>
+              ) : menuItems.length === 0 ? (
+                <div className="text-center py-8 text-[#4F8881] font-bold">Inga rätter tillagda än. Lägg till rätter via Admin!</div>
               ) : (
                 <div className="space-y-3">
                   {menuItems.map((item) => (

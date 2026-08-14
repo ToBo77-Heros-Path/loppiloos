@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { MenuItem, CategoryType } from '@/types/database';
 import { Plus, Trash2, Check, X, Utensils } from 'lucide-react';
 
@@ -18,17 +18,11 @@ export default function AdminPage() {
   const [isAvailable, setIsAvailable] = useState(true);
 
   useEffect(() => {
-    fetchAdminItems();
+    fetchMenuItems();
   }, []);
 
-  const fetchAdminItems = async () => {
+  const fetchMenuItems = async () => {
     setLoading(true);
-    if (!isSupabaseConfigured()) {
-      setItems(DEFAULT_MENU_ITEMS);
-      setLoading(false);
-      return;
-    }
-
     try {
       const { data, error } = await supabase
         .from('menu_items')
@@ -36,13 +30,14 @@ export default function AdminPage() {
         .order('created_at', { ascending: false });
 
       if (error || !data) {
-        setItems(DEFAULT_MENU_ITEMS);
+        if (error) console.error('Error fetching admin menu items:', error);
+        setItems([]);
       } else {
         setItems(data as MenuItem[]);
       }
     } catch (err) {
       console.error('Error fetching admin menu items:', err);
-      setItems(DEFAULT_MENU_ITEMS);
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -52,35 +47,24 @@ export default function AdminPage() {
     e.preventDefault();
     if (!title.trim()) return;
 
-    const newItem: Partial<MenuItem> = {
-      title: title.trim(),
-      description: description.trim(),
-      category,
-      price: 0,
-      available: isAvailable,
-    };
+    const formTitle = title.trim();
+    const formCategory = category;
+    const formDescription = description.trim();
 
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase.from('menu_items').insert([newItem]).select();
-        if (error) {
-          console.error('Error adding item to Supabase:', error);
-        } else if (data && data[0]) {
-          setItems((prev) => [data[0] as MenuItem, ...prev]);
-        }
-      } catch (err) {
-        console.error('Error inserting menu item:', err);
+    const { data, error } = await supabase.from('menu_items').insert([
+      {
+        title: formTitle,
+        category: formCategory,
+        description: formDescription,
+        available: isAvailable,
       }
+    ]).select();
+
+    if (error) {
+      alert('Kunde inte spara i Supabase: ' + error.message);
     } else {
-      const createdItem: MenuItem = {
-        id: `mock-${Date.now()}`,
-        title: newItem.title!,
-        description: newItem.description!,
-        category: newItem.category!,
-        price: 0,
-        available: newItem.available!,
-      };
-      setItems((prev) => [createdItem, ...prev]);
+      // Ladda om menylistan från Supabase
+      fetchMenuItems();
     }
 
     // Reset form
@@ -95,29 +79,28 @@ export default function AdminPage() {
       prev.map((i) => (i.id === id ? { ...i, available: nextAvailable } : i))
     );
 
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase
-          .from('menu_items')
-          .update({ available: nextAvailable })
-          .eq('id', id);
-      } catch (err) {
-        console.error('Failed toggling availability:', err);
+    try {
+      const { error } = await supabase
+        .from('menu_items')
+        .update({ available: nextAvailable })
+        .eq('id', id);
+
+      if (error) {
+        console.error('Failed toggling availability:', error);
       }
+    } catch (err) {
+      console.error('Failed toggling availability:', err);
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
+  const handleDeleteItem = async (itemId: string) => {
     if (!confirm('Är du säker på att du vill ta bort denna rätt permanent?')) return;
 
-    setItems((prev) => prev.filter((i) => i.id !== id));
-
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.from('menu_items').delete().eq('id', id);
-      } catch (err) {
-        console.error('Failed deleting menu item:', err);
-      }
+    const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
+    if (error) {
+      alert('Kunde inte ta bort i Supabase: ' + error.message);
+    } else {
+      fetchMenuItems();
     }
   };
 
@@ -214,6 +197,8 @@ export default function AdminPage() {
 
           {loading ? (
             <div className="text-center py-8 text-[#4F8881]">Laddar menylista...</div>
+          ) : items.length === 0 ? (
+            <div className="text-center py-8 text-[#4F8881] font-bold">Inga rätter tillagda än. Lägg till rätter via Admin!</div>
           ) : (
             <div className="space-y-3">
               {items.map((item) => (

@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { supabase, DEFAULT_MENU_ITEMS, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { MenuItem, CategoryType } from '@/types/database';
 import confetti from 'canvas-confetti';
 import { ShoppingBag, Check, Plus, Minus, User, Sparkles, UtensilsCrossed, Wine, Cake } from 'lucide-react';
@@ -34,12 +34,6 @@ export default function GuestPage() {
 
   const fetchMenuItems = async () => {
     setLoading(true);
-    if (!isSupabaseConfigured()) {
-      setMenuItems(DEFAULT_MENU_ITEMS.filter((i) => i.available));
-      setLoading(false);
-      return;
-    }
-
     try {
       const { data, error } = await supabase
         .from('menu_items')
@@ -47,14 +41,15 @@ export default function GuestPage() {
         .eq('available', true)
         .order('created_at', { ascending: true });
 
-      if (error || !data || data.length === 0) {
-        setMenuItems(DEFAULT_MENU_ITEMS.filter((i) => i.available));
+      if (error || !data) {
+        if (error) console.error('Error fetching menu items:', error);
+        setMenuItems([]);
       } else {
         setMenuItems(data as MenuItem[]);
       }
     } catch (err) {
       console.error('Error fetching menu items:', err);
-      setMenuItems(DEFAULT_MENU_ITEMS.filter((i) => i.available));
+      setMenuItems([]);
     } finally {
       setLoading(false);
     }
@@ -258,7 +253,7 @@ export default function GuestPage() {
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-12 diner-glass-card rounded-2xl text-[#4F8881] font-medium">
-              Inga rätter tillgängliga i denna kategori för tillfället.
+              {menuItems.length === 0 ? 'Inga rätter tillagda än. Lägg till rätter via Admin!' : 'Inga rätter tillgängliga i denna kategori för tillfället.'}
             </div>
           ) : (
             filteredItems.map((item) => {
