@@ -124,12 +124,12 @@ export default function KitchenPage() {
       const { data, error } = await supabase
         .from('menu_items')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: true });
 
-      if (error || !data) {
-        if (error) console.error('Failed fetching menu items in kitchen:', error);
+      if (error) {
+        console.error('Failed fetching menu items in kitchen:', error);
         setMenuItems([]);
-      } else {
+      } else if (data) {
         setMenuItems(data as MenuItem[]);
       }
     } catch (err) {
