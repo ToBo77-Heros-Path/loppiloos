@@ -37,15 +37,14 @@ export default function GuestPage() {
     try {
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*')
-        .eq('available', true)
-        .order('created_at', { ascending: true });
+        .select('*');
 
-      if (error || !data) {
-        if (error) console.error('Error fetching menu items:', error);
+      if (error) {
+        console.error('Error fetching menu items:', error);
         setMenuItems([]);
       } else {
-        setMenuItems(data as MenuItem[]);
+        const list = ((data || []) as MenuItem[]).filter((i) => i.available !== false);
+        setMenuItems(list);
       }
     } catch (err) {
       console.error('Error fetching menu items:', err);
@@ -143,10 +142,12 @@ export default function GuestPage() {
   ];
 
   const filteredItems = menuItems.filter((i) => {
+    if (!i.category) return false;
+    const cat = i.category.trim();
     if (selectedCategory === 'Bygg din Tårta') {
-      return i.category === 'Bygg din Tårta' || i.category === 'Dessert';
+      return cat === 'Bygg din Tårta' || cat === 'Dessert';
     }
-    return i.category === selectedCategory;
+    return cat === selectedCategory;
   });
 
   return (

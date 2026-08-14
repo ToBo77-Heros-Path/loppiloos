@@ -26,14 +26,20 @@ export default function AdminPage() {
     try {
       const { data, error } = await supabase
         .from('menu_items')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
-      if (error || !data) {
-        if (error) console.error('Error fetching admin menu items:', error);
+      if (error) {
+        console.error('Error fetching admin menu items:', error);
         setItems([]);
       } else {
-        setItems(data as MenuItem[]);
+        const list = (data || []) as MenuItem[];
+        list.sort((a, b) => {
+          if (a.created_at && b.created_at) {
+            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          }
+          return 0;
+        });
+        setItems(list);
       }
     } catch (err) {
       console.error('Error fetching admin menu items:', err);
@@ -63,6 +69,9 @@ export default function AdminPage() {
     if (error) {
       alert('Kunde inte spara i Supabase: ' + error.message);
     } else {
+      if (data && data.length > 0) {
+        setItems((prev) => [data[0] as MenuItem, ...prev]);
+      }
       // Ladda om menylistan från Supabase
       fetchMenuItems();
     }
