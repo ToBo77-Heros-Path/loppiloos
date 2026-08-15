@@ -414,8 +414,41 @@ export default function KitchenPage() {
                           </div>
                           <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                             {parsedItems.map((item: any, idx: number) => {
-                              const name = item.title || item.name || item.item_title || 'Okänd rätt';
+                              const name = item.title || item.name || item.item_title || 'Egendesignad Tårta 🎂';
                               const quantity = item.quantity || item.qty || item.count || 1;
+
+                              if (item.cake_details) {
+                                const fillingsStr = Array.isArray(item.cake_details.fillings)
+                                  ? item.cake_details.fillings.join(', ')
+                                  : (item.cake_details.fillings || 'Ingen');
+                                const toppingsStr = Array.isArray(item.cake_details.toppings)
+                                  ? item.cake_details.toppings.join(', ')
+                                  : (item.cake_details.toppings || 'Ingen');
+
+                                return (
+                                  <div
+                                    key={idx}
+                                    className="bg-[#FFD3DD]/30 p-3.5 rounded-2xl border-2 border-[#F3A2BE] flex flex-col gap-1.5 text-xs text-[#2D3748] shadow-sm"
+                                  >
+                                    <div className="flex justify-between items-center font-extrabold text-sm text-[#e11d48]">
+                                      <span>{name}</span>
+                                      <span className="font-black text-white bg-[#e11d48] px-2.5 py-0.5 rounded-full text-xs shadow-sm">
+                                        x{quantity}
+                                      </span>
+                                    </div>
+                                    <div className="font-bold text-[#4F8881]">
+                                      🥞 Botten: <span className="font-medium text-[#2D3748]">{item.cake_details.base || 'Ingen'}</span>
+                                    </div>
+                                    <div className="font-bold text-[#4F8881]">
+                                      🍓 Fyllning: <span className="font-medium text-[#2D3748]">{fillingsStr}</span>
+                                    </div>
+                                    <div className="font-bold text-[#4F8881]">
+                                      ✨ Topping: <span className="font-medium text-[#2D3748]">{toppingsStr}</span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
                               return (
                                 <div
                                   key={idx}
@@ -490,6 +523,9 @@ export default function KitchenPage() {
                     <option value="Candy Drinks">Candy Drinks 🍹</option>
                     <option value="Bygg din Tårta">🎂 Bygg din Tårta</option>
                     <option value="Dessert">Dessert 🍨</option>
+                    <option value="Tårta - Botten">🥞 Tårta - Botten</option>
+                    <option value="Tårta - Fyllning">🍓 Tårta - Fyllning</option>
+                    <option value="Tårta - Topping">✨ Tårta - Topping</option>
                   </select>
                 </div>
 

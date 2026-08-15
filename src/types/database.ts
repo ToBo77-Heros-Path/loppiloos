@@ -1,4 +1,17 @@
-export type CategoryType = 'Smårätter' | 'Candy Drinks' | 'Bygg din Tårta' | 'Dessert';
+export type CategoryType = 
+  | 'Smårätter' 
+  | 'Candy Drinks' 
+  | 'Bygg din Tårta' 
+  | 'Dessert'
+  | 'Tårta - Botten'
+  | 'Tårta - Fyllning'
+  | 'Tårta - Topping';
+
+export interface CakeDetails {
+  base: string;
+  fillings: string[];
+  toppings: string[];
+}
 
 export interface MenuItem {
   id: string;
@@ -21,6 +34,7 @@ export interface OrderItem {
   count?: number;
   price?: number;
   category?: CategoryType;
+  cake_details?: CakeDetails;
 }
 
 export interface Order {
