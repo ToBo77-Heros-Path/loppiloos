@@ -39,6 +39,9 @@ export default function RootLayout({
             <Link href="/admin" className="hover:text-[#e11d48] transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-[#FFD3DD]/50">
               ⚙️ Admin
             </Link>
+            <Link href="/statistik" className="hover:text-[#e11d48] transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-[#FFD3DD]/50">
+              📊 Statistik
+            </Link>
           </div>
         </nav>
 
